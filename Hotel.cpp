@@ -254,6 +254,7 @@ void Hotel::addGuest(int roomnum) //добавя гост в стая с дад�
 {  Guest a;
 std::cin>>a;
     this->Rooms[this->findRoom(roomnum)]+=a;
+    
 }
 bool Room::isDateBetween(char date[9],char start[9],char end[9]) //проверява дали дата се намира между други две YYYYMMDD
 {
@@ -279,21 +280,41 @@ bool Room::isFree(char date[9]) //проверява дали стая е сво
     }
     return true;
 }
+bool Room::isFreePeriod(char start[9],char end[9]) //проверява дали стая е свободна за определен преиод
+{  
+
+}
 void Hotel::freeRooms(char date[9]) //изкарва номера на стаи, свободни на дадена дата
 { for (int i=0; i<this->size; i++)
 {
     if (this->Rooms[i].isFree(date))  std::cout<<this->Rooms[i].getNum()<<" "; 
 }
 }
-
+void Hotel::clearRoom(int roomnum,char date[9]) //маха гост, посетил на дадена дата
+{ int num=this->findRoom(roomnum);
+    this->Rooms[num].clearGuest(date);
+}
+void Room::clearGuest(char date[9]) //помощна за clearRoom
+{ for(int i=0; i<this->size; i++)
+{
+    if(this->isDateBetween(date,this->Guests[i].getEntry(),this->Guests[i].getExit()))
+       {    
+           this->Guests[i]=this->Guests[--size];      
+           return;
+       }
+}
+std::cout<<"No Guest at that time";
+}
 int main()
 {   Hotel hotel1;
     Room room101(101, 2),room102(102,3),room103(103,2);
-    Guest a("aname", "anote", "20021101", "20021106"),b("bname", "bnote", "20021102", "20021109"),c("cname", "cnote", "20021108", "20021115"); 
+    Guest a("aname", "anote", "20021101", "20021106"),b("bname", "bnote", "20021108", "20021109"),c("cname", "cnote", "20021110", "20021115"); 
     room101+=a; room101+=b; room102+=b; room102+=c; room103+=a; room103+=c;
     hotel1+=room101; hotel1+=room102; hotel1+=room103;
-  std::cout<<hotel1;
-  hotel1.freeRooms("20021116");
-  
+ 
+  hotel1.clearRoom(101,"20021101");
+  hotel1.addGuest(101);
+   std::cout<<hotel1;
+   hotel1.freeRooms("20021117"); 
     return 0;
 }

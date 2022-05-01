@@ -24,5 +24,6 @@ int getSize() const;
 friend std::ostream& operator <<(std::ostream& out,const Room& obj);
 bool isFree(char date[9]);
 bool isDateBetween(char date[9],char start[9],char end[9]);
-
+void clearGuest(char date[9]);
+bool isFreePeriod(char start[9],char end[9]);
 };

@@ -15,4 +15,5 @@ friend std::ostream& operator<<(std::ostream& out,const Hotel& obj);
 void addGuest(int roomnum);
 int findRoom(int num);
 void freeRooms(char date[9]);
+void clearRoom(int roomnum,char date[9]);
 };
