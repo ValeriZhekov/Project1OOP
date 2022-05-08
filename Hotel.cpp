@@ -106,7 +106,7 @@ Guest *Room::getGuest(int i)
 }
 std::ostream &operator<<(std::ostream &out, const Room &obj)
 {
-    out << "Room: " << obj.num << " " << obj.beds << '\n';
+    out << obj.num << '\n' << obj.beds <<'\n'<<obj.size<<'\n';
     for (int i = 0; i < obj.size; i++)
         out << obj.Guests[i];
     return out;
@@ -171,23 +171,23 @@ Guest &Guest::operator=(const Guest &other)
 }
 std::ostream &operator<<(std::ostream &out, const Guest &obj)
 {
-    out << obj.name << " " << obj.note << " " << obj.entry << " " << obj.exit << '\n';
+    out << obj.name << '\n' << obj.note << '\n' << obj.entry << '\n' << obj.exit << '\n';
     return out;
 }
 std::istream &operator>>(std::istream &in, Guest &obj)
 {
     char namebuffer[100];
     std::cout << "Name: ";
-    in >> namebuffer;
+    std::cin.getline(namebuffer,99);
     char notebuffer[100];
     std::cout << "Note: ";
-    in >> notebuffer;
+    std::cin.getline(notebuffer,99);
     char entrybuffer[9];
     std::cout << "Entry Date: ";
-    in >> entrybuffer;
+    std::cin.getline(entrybuffer,9);
     char exitbuffer[100];
     std::cout << "Exit Date: ";
-    in >> exitbuffer;
+    std::cin.getline(exitbuffer,9);
     Guest a(namebuffer, notebuffer, entrybuffer, exitbuffer);
     obj = a;
     return in;
@@ -251,7 +251,7 @@ Hotel &Hotel::operator+=(const Room &other)
     return *this;
 }
 std::ostream &operator<<(std::ostream &out, const Hotel &obj)
-{
+{   out<<obj.size<<'\n';
     for (int i = 0; i < obj.size; i++)
     {
         out << obj.Rooms[i];
@@ -338,9 +338,9 @@ void Room::clearGuest(char date[9]) //помощна за clearRoom
             return;
         }
     }
-    std::cout << "No Guest at that time";
+    std::cout << "No Guest at that time"<<'\n';
 }
-void Hotel::findFreeRoom(char start[9],char end[9],int beds)
+void Hotel::findFreeRoom(char start[9],char end[9],int beds) //намира празни стай с минимален брой легла
 { int min=100;
     for (int i=0; i<this->size; i++)
 {
@@ -358,24 +358,131 @@ for (int i=0; i<this->size; i++)
 }
 std::cout<<std::endl;
 }
-int main()
+void Hotel::closeRoom(int roomnum) //затваря стая за определен период
+{ char namebuffer[100];
+    std::cout << "Reason: ";
+    std::cin.getline(namebuffer,99);
+    char notebuffer[100];
+    std::cout << "Note: ";
+    std::cin.getline(notebuffer,99);
+    char entrybuffer[9];
+    std::cout << "Starting Date: ";
+    std::cin.getline(entrybuffer,9);
+    char exitbuffer[100];
+    std::cout << "Ending Date: ";
+    std::cin.getline(exitbuffer,9);
+    Guest a(namebuffer, notebuffer, entrybuffer, exitbuffer);
+    if (this->Rooms[this->findRoom(roomnum)].isFreePeriod(a.getEntry(),a.getExit()))
+    {   
+        this->Rooms[this->findRoom(roomnum)] += a;
+    }
+    else
+        std::cout << "Room is in use at these dates"<<std::endl;
+}
+void Hotel::isFreeFile() //извежда справка за заетост на всички стай за даден период
+{   char start[9],end[9];
+    std::cout<<"Starting date: "; std::cin.getline(start,9);
+    std::cout<<"Ending date: "; std::cin.getline(end,9);
+
+    std::ofstream file("start.txt"); 
+    if (!file.is_open()) 
+    {
+        std::cout << "Problem while opening the file" << std::endl;
+        return;
+    }
+}
+int charToInt(char* array) //преобразува char в int
+{ int i=0,num=0;
+ while (array[i]!='\0')
+{ num=num*10;
+    num+=array[i]-48;
+    i++;
+} return num;
+}
+int Hotel::getSize() //дава брой стай в хотел
 {
+    return this->size;
+}
+void Hotel::Menu() //диалогов режим на работа
+{   int num=10;
+    do{ std::cout<<"Напишете цифрата пред операцията: "<<'\n';
+    std::cout<<"Регистрирай гост: 1 "<<'\n';
+    std::cout<<"Свободни стай за дадена дата: 2 "<<'\n';
+    std::cout<<"Освобождаване на стая: 3 "<<'\n';
+    std::cout<<"Търсене на стая с минимален брой легла: 4 "<<'\n';
+    std::cout<<"Затваряне на стая: 5 "<<'\n';
+    std::cout<<"Изход: 0"<<'\n';
+        std::cout<<">";
+        std::cin>>num; std::cin.ignore();
+    if (num==1)
+    {   int roomnum; std::cout<<"Номер на стая: ";
+        std::cin>>roomnum; std::cin.ignore();
+        this->addGuest(roomnum);
+    }
+    if (num==2)
+    { char date[9]; std::cout<<"Дата(YYYYMMDD): ";
+        std::cin.getline(date,9); 
+     this->freeRooms(date);
+    }
+    if (num==3)
+    { int number; char date1[9];
+     std::cout<<"Номер на стая: ";
+    std::cin>>number;std::cin.ignore(); std::cout<<"Дата: ";
+    std::cin.getline(date1,9); 
+        clearRoom(number,date1);
+    }
+    if (num==4)
+    { char entry[9],exit[9]; int beds;
+    std::cout<<"Брой легла: ";
+    std::cin>>beds; std::cin.ignore();
+    std::cout<<"Дата на настаняване: ";
+    std::cin.getline(entry,9); 
+    std::cout<<"Дата на напускане: ";
+    std::cin.getline(exit,9);    
+    this->findFreeRoom(entry,exit,beds);
+    }
+    if(num==5)
+    { int nomer;
+        std::cout<<"Номер на стая: ";
+    std::cin>>nomer; std::cin.ignore();
+        this->closeRoom(nomer);
+    } std::cout<<*this;
+    }while(num!=0);
+}
+int main()
+{ 
     Hotel hotel1;
-    Room room101(101, 2), room102(102, 3), room103(103, 2);
-    Guest a("aname", "anote", "20021101", "20021106"), b("bname", "bnote", "20021108", "20021109"), c("cname", "cnote", "20021110", "20021115");
-    room101 += a;
-    room101 += b;
-    room102 += b;
-    room102 += c;
-    room103 += a;
-    room103 += c;
-    hotel1 += room101;
-    hotel1 += room102;
-    hotel1 += room103;
-    hotel1.clearRoom(101, "20021101");
-    /* hotel1.addGuest(101); */
-    std::cout << hotel1;
-    hotel1.freeRooms("20021117");
-    hotel1.findFreeRoom("20021107","20021107",3);
+   std::ifstream infile("hotelInfo.txt");
+    if (!infile.is_open()) 
+    {
+        std::cout << "Problem while opening the file" << std::endl;
+    }
+    char size[100];
+    infile.getline(size,100); 
+    for (int j=0; j<charToInt(size); j++)
+    { char name[100], note[100], entry[9], exit[9],num[10],bed[10],guest[10];
+     infile.getline(num,10);
+     infile.getline(bed,10);
+     infile.getline(guest,10);
+     Room newroom(charToInt(num),charToInt(bed));
+      for (int i=0; i<charToInt(guest); i++)
+     { infile.getline(name, 100);
+        infile.getline(note, 100);
+        infile.getline(entry, 9);
+        infile.getline(exit, 9);
+    Guest newguest(name,note,entry,exit);
+    newroom+=newguest; 
+     }
+    hotel1+=newroom; 
+    } 
+    infile.close(); 
+    hotel1.Menu();
+    std::ofstream outfile("hotelInfo.txt"); 
+    if (!outfile.is_open()) 
+    {
+        std::cout << "Problem while opening the file" << std::endl;
+    }
+    outfile<<hotel1;
+    outfile.close();
     return 0;
 }
